@@ -1,5 +1,5 @@
 * ======================================================================
-*                         © ABAP
+*                         © Abap
 * ======================================================================
 * Name........: ZFIR0021
 * Author......: Jonathan de Andrade
@@ -107,9 +107,25 @@ START-OF-SELECTION.
   lw_log-subobject = gc_log_subobject.
   lw_log-alprog    = sy-repid.
 
+  " Inicializar Log
+  CALL FUNCTION 'BAL_LOG_CREATE'
+    EXPORTING
+      i_s_log                 = lw_log
+    IMPORTING
+      e_log_handle            = lw_log_handle
+    EXCEPTIONS
+      log_header_inconsistent = 1
+      OTHERS                  = 2.
+  IF sy-subrc <> 0.
+    ##NEEDED.
+  ENDIF.
+
   PERFORM f_get_http_data.
   PERFORM f_split_http_data.
   PERFORM f_fill_data.
+
+  PERFORM f_save_log.
+
   MESSAGE s046(zfi).
 
 *&---------------------------------------------------------------------*
@@ -137,18 +153,18 @@ FORM f_get_http_data.
 
   REPLACE FIRST OCCURRENCE  OF 'AAAAMMDD' IN gv_url1 WITH lv_data.
 
-  " Inicializa Log
-  CALL FUNCTION 'BAL_LOG_CREATE'
-    EXPORTING
-      i_s_log                 = lw_log
-    IMPORTING
-      e_log_handle            = lw_log_handle
-    EXCEPTIONS
-      log_header_inconsistent = 1
-      OTHERS                  = 2.
-  IF sy-subrc <> 0.
-    ##NEEDED.
-  ENDIF.
+*  " Inicializa Log
+*  CALL FUNCTION 'BAL_LOG_CREATE'
+*    EXPORTING
+*      i_s_log                 = lw_log
+*    IMPORTING
+*      e_log_handle            = lw_log_handle
+*    EXCEPTIONS
+*      log_header_inconsistent = 1
+*      OTHERS                  = 2.
+*  IF sy-subrc <> 0.
+*    ##NEEDED.
+*  ENDIF.
 
   CALL FUNCTION 'HTTP_GET'
     EXPORTING
@@ -173,6 +189,7 @@ FORM f_get_http_data.
     text1 = '-' ##NO_TEXT.
     text2 = 'Falha na comunicação.' ##NO_TEXT.
     PERFORM f_registrar_log USING 'E' '047' 'ZFI' text1 text2 text3 text4.
+    PERFORM f_save_log.
     PERFORM f_enviar_email.
     MESSAGE s047(zfi) DISPLAY LIKE 'E' WITH text1 text2.
     LEAVE LIST-PROCESSING.
@@ -194,6 +211,7 @@ FORM f_get_http_data.
     text1 = '-' ##NO_TEXT.
     text2 = 'Arquivo não encontrado.' ##NO_TEXT.
     PERFORM f_registrar_log USING 'E' '047' 'ZFI' text1 text2 text3 text4.
+    PERFORM f_save_log.
     PERFORM f_enviar_email.
     MESSAGE s047(zfi) DISPLAY LIKE 'E' WITH text1 text2.
     LEAVE LIST-PROCESSING.
@@ -298,18 +316,18 @@ FORM f_fill_data.
 
         LOOP AT lt_cotacao INTO lw_cotacao.
 
-          " Inicializa Log
-          CALL FUNCTION 'BAL_LOG_CREATE'
-            EXPORTING
-              i_s_log                 = lw_log
-            IMPORTING
-              e_log_handle            = lw_log_handle
-            EXCEPTIONS
-              log_header_inconsistent = 1
-              OTHERS                  = 2.
-          IF sy-subrc <> 0.
-            ##NEEDED.
-          ENDIF.
+*          " Inicializa Log
+*          CALL FUNCTION 'BAL_LOG_CREATE'
+*            EXPORTING
+*              i_s_log                 = lw_log
+*            IMPORTING
+*              e_log_handle            = lw_log_handle
+*            EXCEPTIONS
+*              log_header_inconsistent = 1
+*              OTHERS                  = 2.
+*          IF sy-subrc <> 0.
+*            ##NEEDED.
+*          ENDIF.
 
           READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'B'
                                                      fcurr = lw_cotacao-camp04.
@@ -335,18 +353,18 @@ FORM f_fill_data.
 
         LOOP AT lt_cotacao INTO lw_cotacao.
 
-          " Inicializa Log
-          CALL FUNCTION 'BAL_LOG_CREATE'
-            EXPORTING
-              i_s_log                 = lw_log
-            IMPORTING
-              e_log_handle            = lw_log_handle
-            EXCEPTIONS
-              log_header_inconsistent = 1
-              OTHERS                  = 2.
-          IF sy-subrc <> 0.
-            ##NEEDED.
-          ENDIF.
+*          " Inicializa Log
+*          CALL FUNCTION 'BAL_LOG_CREATE'
+*            EXPORTING
+*              i_s_log                 = lw_log
+*            IMPORTING
+*              e_log_handle            = lw_log_handle
+*            EXCEPTIONS
+*              log_header_inconsistent = 1
+*              OTHERS                  = 2.
+*          IF sy-subrc <> 0.
+*            ##NEEDED.
+*          ENDIF.
 
           READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'G'
                                                      fcurr = lw_cotacao-camp04.
@@ -372,18 +390,18 @@ FORM f_fill_data.
 
         LOOP AT lt_cotacao INTO lw_cotacao.
 
-          " Inicializa Log
-          CALL FUNCTION 'BAL_LOG_CREATE'
-            EXPORTING
-              i_s_log                 = lw_log
-            IMPORTING
-              e_log_handle            = lw_log_handle
-            EXCEPTIONS
-              log_header_inconsistent = 1
-              OTHERS                  = 2.
-          IF sy-subrc <> 0.
-            ##NEEDED.
-          ENDIF.
+*          " Inicializa Log
+*          CALL FUNCTION 'BAL_LOG_CREATE'
+*            EXPORTING
+*              i_s_log                 = lw_log
+*            IMPORTING
+*              e_log_handle            = lw_log_handle
+*            EXCEPTIONS
+*              log_header_inconsistent = 1
+*              OTHERS                  = 2.
+*          IF sy-subrc <> 0.
+*            ##NEEDED.
+*          ENDIF.
 
           READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'M'
                                                      fcurr = lw_cotacao-camp04.
@@ -433,6 +451,7 @@ FORM f_registrar_log USING flv_tipo
   msg-msgv3 = flv_text3.
   msg-msgv4 = flv_text4.
 
+  " Adicionar mensagens no log
   CALL FUNCTION 'BAL_LOG_MSG_ADD'
     EXPORTING
       i_log_handle     = lw_log_handle
@@ -448,19 +467,20 @@ FORM f_registrar_log USING flv_tipo
 
   INSERT lw_log_handle INTO TABLE lt_log_handle.
 
-  CALL FUNCTION 'BAL_DB_SAVE'
-    EXPORTING
-      i_t_log_handle   = lt_log_handle
-    EXCEPTIONS
-      log_not_found    = 1
-      save_not_allowed = 2
-      numbering_error  = 3
-      OTHERS           = 4.
-  IF sy-subrc <> 0.
-* Implement suitable error handling here
-  ENDIF.
+*  " Salvar log no banco de dados
+*  CALL FUNCTION 'BAL_DB_SAVE'
+*    EXPORTING
+*      i_t_log_handle   = lt_log_handle
+*    EXCEPTIONS
+*      log_not_found    = 1
+*      save_not_allowed = 2
+*      numbering_error  = 3
+*      OTHERS           = 4.
+*  IF sy-subrc <> 0.
+** Implement suitable error handling here
+*  ENDIF.
 
-  CLEAR: lw_log_handle, lt_log_handle.
+  "CLEAR: lw_log_handle. ", lt_log_handle.
 
 ENDFORM.                    " F_REGISTRAR_LOG
 
@@ -491,6 +511,7 @@ FORM f_chamar_bapi_create USING p_exch_rate.
       text1 = '-'.
       CONCATENATE 'Objeto bloqueado pelo usuário' lw_bapiret2-message_v1 INTO text2 SEPARATED BY space.
       PERFORM f_registrar_log USING 'E' '047' 'ZFI' text1 text2 text3 text4.
+      PERFORM f_save_log.
       MESSAGE s047(zfi) DISPLAY LIKE 'E' WITH text1 text2.
       LEAVE LIST-PROCESSING.
     ENDIF.
@@ -514,6 +535,7 @@ FORM f_chamar_bapi_create USING p_exch_rate.
            INTO text4 SEPARATED BY '.'.
 
     PERFORM f_registrar_log USING 'E' '047' 'ZFI' text1 text2 text3 text4.
+    PERFORM f_save_log.
     PERFORM f_enviar_email.
     CLEAR: text1, text2, text3, text4.
 
@@ -620,3 +642,25 @@ FORM f_enviar_email.
   ENDTRY.
 
 ENDFORM.                    " F_ENVIAR_EMAIL
+
+*&---------------------------------------------------------------------*
+*&      Form  F_SAVE_LOG
+*&---------------------------------------------------------------------*
+* Salva os registros de logs no banco de dados
+*----------------------------------------------------------------------*
+FORM f_save_log.
+
+  " Salvar log no banco de dados
+  CALL FUNCTION 'BAL_DB_SAVE'
+    EXPORTING
+      i_t_log_handle   = lt_log_handle
+    EXCEPTIONS
+      log_not_found    = 1
+      save_not_allowed = 2
+      numbering_error  = 3
+      OTHERS           = 4.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+ENDFORM.                    " F_SAVE_LOG
