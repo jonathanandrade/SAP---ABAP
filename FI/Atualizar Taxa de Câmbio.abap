@@ -153,19 +153,6 @@ FORM f_get_http_data.
 
   REPLACE FIRST OCCURRENCE  OF 'AAAAMMDD' IN gv_url1 WITH lv_data.
 
-*  " Inicializa Log
-*  CALL FUNCTION 'BAL_LOG_CREATE'
-*    EXPORTING
-*      i_s_log                 = lw_log
-*    IMPORTING
-*      e_log_handle            = lw_log_handle
-*    EXCEPTIONS
-*      log_header_inconsistent = 1
-*      OTHERS                  = 2.
-*  IF sy-subrc <> 0.
-*    ##NEEDED.
-*  ENDIF.
-
   CALL FUNCTION 'HTTP_GET'
     EXPORTING
       absolute_uri                = gv_url1
@@ -316,57 +303,7 @@ FORM f_fill_data.
 
         LOOP AT lt_cotacao INTO lw_cotacao.
 
-*          " Inicializa Log
-*          CALL FUNCTION 'BAL_LOG_CREATE'
-*            EXPORTING
-*              i_s_log                 = lw_log
-*            IMPORTING
-*              e_log_handle            = lw_log_handle
-*            EXCEPTIONS
-*              log_header_inconsistent = 1
-*              OTHERS                  = 2.
-*          IF sy-subrc <> 0.
-*            ##NEEDED.
-*          ENDIF.
-
           READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'B'
-                                                     fcurr = lw_cotacao-camp04.
-
-          lw_exch_rate-rate_type = lw_cat_taxa-kurst.  " Categoria
-          lw_exch_rate-from_curr = lw_cotacao-camp04.  " Moeda
-          lw_exch_rate-to_currncy = 'BRL'.
-          lw_exch_rate-valid_from = lw_cotacao-camp01. " Data
-          lw_exch_rate-exch_rate = lw_cotacao-camp06.  " Campo Venda
-          lw_exch_rate-from_factor = lw_tcurf-ffact.
-          lw_exch_rate-to_factor = lw_tcurf-tfact.
-          lw_exch_rate-exch_rate_v = ' '.
-          lw_exch_rate-from_factor_v = lw_tcurf-ffact.
-          lw_exch_rate-to_factor_v = lw_tcurf-tfact.
-
-          PERFORM f_chamar_bapi_create USING lw_exch_rate.
-
-          CLEAR lw_exch_rate.
-
-        ENDLOOP.
-
-      WHEN 'G'.
-
-        LOOP AT lt_cotacao INTO lw_cotacao.
-
-*          " Inicializa Log
-*          CALL FUNCTION 'BAL_LOG_CREATE'
-*            EXPORTING
-*              i_s_log                 = lw_log
-*            IMPORTING
-*              e_log_handle            = lw_log_handle
-*            EXCEPTIONS
-*              log_header_inconsistent = 1
-*              OTHERS                  = 2.
-*          IF sy-subrc <> 0.
-*            ##NEEDED.
-*          ENDIF.
-
-          READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'G'
                                                      fcurr = lw_cotacao-camp04.
 
           lw_exch_rate-rate_type = lw_cat_taxa-kurst.  " Categoria
@@ -386,22 +323,33 @@ FORM f_fill_data.
 
         ENDLOOP.
 
-      WHEN 'M'.
+      WHEN 'G'.
 
         LOOP AT lt_cotacao INTO lw_cotacao.
 
-*          " Inicializa Log
-*          CALL FUNCTION 'BAL_LOG_CREATE'
-*            EXPORTING
-*              i_s_log                 = lw_log
-*            IMPORTING
-*              e_log_handle            = lw_log_handle
-*            EXCEPTIONS
-*              log_header_inconsistent = 1
-*              OTHERS                  = 2.
-*          IF sy-subrc <> 0.
-*            ##NEEDED.
-*          ENDIF.
+          READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'G'
+                                                     fcurr = lw_cotacao-camp04.
+
+          lw_exch_rate-rate_type = lw_cat_taxa-kurst.  " Categoria
+          lw_exch_rate-from_curr = lw_cotacao-camp04.  " Moeda
+          lw_exch_rate-to_currncy = 'BRL'.
+          lw_exch_rate-valid_from = lw_cotacao-camp01. " Data
+          lw_exch_rate-exch_rate = lw_cotacao-camp06.  " Campo Venda
+          lw_exch_rate-from_factor = lw_tcurf-ffact.
+          lw_exch_rate-to_factor = lw_tcurf-tfact.
+          lw_exch_rate-exch_rate_v = ' '.
+          lw_exch_rate-from_factor_v = lw_tcurf-ffact.
+          lw_exch_rate-to_factor_v = lw_tcurf-tfact.
+
+          PERFORM f_chamar_bapi_create USING lw_exch_rate.
+
+          CLEAR lw_exch_rate.
+
+        ENDLOOP.
+
+      WHEN 'M'.
+
+        LOOP AT lt_cotacao INTO lw_cotacao.
 
           READ TABLE lt_tcurf INTO lw_tcurf WITH KEY kurst = 'M'
                                                      fcurr = lw_cotacao-camp04.
