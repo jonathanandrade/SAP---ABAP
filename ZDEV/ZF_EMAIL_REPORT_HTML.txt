@@ -8,6 +8,7 @@ FUNCTION zf_email_report_html.
 *"  TABLES
 *"      TABLE_SENDERS TYPE  BCSY_SMTPA
 *"      TABLE_PARAMS STRUCTURE  RSPARAMS OPTIONAL
+*"      TEXT_BODY TYPE  BCSY_TEXT OPTIONAL
 *"      RETURN TYPE  TABLE_OF_STRINGS OPTIONAL
 *"  EXCEPTIONS
 *"      ENTER_RECIPIENT
@@ -102,9 +103,8 @@ FUNCTION zf_email_report_html.
 
     CLEAR: lo_send_request.
 
-*--- Criando texto para o corpo do email
-    lw_text = 'Segue em anexo documento.'.
-    APPEND lw_text TO lt_text ##NO_TEXT.
+*--- Texto para o corpo do email
+    MOVE-CORRESPONDING text_body[] TO lt_text[].
 
     TRY.
 
